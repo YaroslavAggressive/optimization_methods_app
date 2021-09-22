@@ -14,7 +14,7 @@ def test_golden_ratio_method(test_example: Case) -> None:
     result_golden = OneDimMinimization.golden_ratio_method(parse_expr(test_example.func),
                                                            test_example.interval,
                                                            test_example.accuracy)
-    assert result_golden - test_example.expected < test_example.accuracy
+    assert result_golden[0] - test_example.expected < test_example.accuracy
 
 
 @pytest.mark.parametrize('test_example', ONE_DIM_MINIMIZATION_DATA, ids=str)
@@ -27,7 +27,7 @@ def test_bisection_method(test_example: Case) -> None:
     result_bisection = OneDimMinimization.bisection_method(parse_expr(test_example.func),
                                                            test_example.interval,
                                                            test_example.accuracy)
-    assert result_bisection - test_example.expected < test_example.accuracy
+    assert result_bisection[0] - test_example.expected < test_example.accuracy
 
 
 @pytest.mark.parametrize('test_example', ONE_DIM_MINIMIZATION_DATA, ids=str)
@@ -40,7 +40,7 @@ def test_dichotomy_method(test_example: Case) -> None:
     result_bisection = OneDimMinimization.dichotomy_method(parse_expr(test_example.func),
                                                            test_example.interval,
                                                            test_example.accuracy)
-    assert result_bisection - test_example.expected < test_example.accuracy
+    assert result_bisection[0] - test_example.expected < test_example.accuracy
 
 
 @pytest.mark.parametrize('test_example', ONE_DIM_MINIMIZATION_DATA, ids=str)
@@ -53,4 +53,4 @@ def test_fibonacci_method(test_example: Case) -> None:
     result_fibonacci = OneDimMinimization.fibonacci_method(parse_expr(test_example.func),
                                                            test_example.interval,
                                                            test_example.accuracy)
-    assert result_fibonacci - test_example.expected < test_example.accuracy
+    assert result_fibonacci[0] - test_example.expected < test_example.accuracy
