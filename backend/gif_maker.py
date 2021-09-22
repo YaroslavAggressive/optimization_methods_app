@@ -8,6 +8,7 @@ GIF_OPTIONS = {'duration': 1}  # constantly set duration of result gif
 DEFAULT_DIRECTORY = "C:/"
 PATH_DELIMITER = "//"
 GIF_FORMAT = ".gif"
+EMPTY_STR = ""
 
 
 class GifMaker:
@@ -17,7 +18,7 @@ class GifMaker:
     """
 
     @staticmethod
-    def create_result_dir_and_idx(dir_name: str) -> int:
+    def create_result_dir_and_idx(dir_name: str = EMPTY_STR) -> int:
 
         """
         Function for creating graph result directory and its index
@@ -41,7 +42,7 @@ class GifMaker:
         return result_idx
 
     @staticmethod
-    def create_gif_result(filenames: list, dir_name: str) -> str:
+    def create_gif_result(filenames: list = [], dir_name: str = EMPTY_STR) -> str:
 
         """
         Method for creating GIF animation from a set of images with recording the result in the required directory
@@ -73,7 +74,7 @@ class GifMaker:
         return result_path + GIF_FORMAT
 
     @staticmethod
-    def clear_temp_images(folder_name: str = ""):
+    def clear_temp_images(folder_name: str = EMPTY_STR):
 
         """
         Method for cleaning the current directory from all files
@@ -91,3 +92,20 @@ class GifMaker:
 
         for file in os.listdir(folder_name):
             os.remove(os.path.join(folder_name, file))
+
+    @staticmethod
+    def check_images_folder(folder_name: str = ""):
+
+        """
+        Method for checking a directory before filling it with temporary files
+
+        Parameters:
+        ----------
+        folder_name: str
+            Name of the folder, the presence and emptiness of which you want to check
+        """
+
+        if not os.path.exists(folder_name):
+            os.mkdir(folder_name)
+        else:
+            GifMaker.clear_temp_images(folder_name)

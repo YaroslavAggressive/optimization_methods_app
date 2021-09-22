@@ -3,6 +3,8 @@ from PyQt5.QtGui import QMovie, QIcon, QPixmap
 from PyQt5 import QtWidgets
 from front.optimization_methods_gui import Ui_MainWindow
 from backend.one_dimension_minimization import OneDimMinimization, EMPTY_STR
+from backend.plane_minimization_drawer import PlaneMinimizationDrawer, IMAGES_FOLDER
+from backend.gif_maker import GifMaker
 from backend.error_message import ErrorMessage
 from sympy.parsing import parse_expr
 import logging
@@ -147,15 +149,17 @@ class AppWindow(QMainWindow, Ui_MainWindow):
         # adopt the minimization method and draw the process
         # self.draw_result_gif(LOADING_GIF)
         OneDimMinimization.logger = logging.getLogger()
-        result = ONE_DIM_MINIMIZATION_METHODS_NAMES[method_name](function, interval, eps, draw=True)
+        results = ONE_DIM_MINIMIZATION_METHODS_NAMES[method_name](function, interval, eps)
 
         # self.clear_gif_label()
         if OneDimMinimization.error_msg:
             AppWindow.show_user_error_mess(OneDimMinimization.error_msg)
             return
-
-        self.draw_result_gif(OneDimMinimization.result_gif)
-        self.draw_result_table(result)
+        drawer = PlaneMinimizationDrawer(function, interval)
+        images_for_gif = drawer.draw_minimization(*results)  # ее сейчас переделаем
+        result_gif = GifMaker.create_gif_result(images_for_gif, IMAGES_FOLDER)
+        self.draw_result_gif(result_gif)
+        self.draw_result_table(results[1])
 
     def init_task_edits(self):
 

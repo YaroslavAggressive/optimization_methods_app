@@ -7,6 +7,7 @@ from matplotlib.figure import Figure, Axes
 from backend.drawer_interface import DrawerInterface
 from typing import List
 from pure_protobuf.dataclasses_ import field, optional_field
+from backend.gif_maker import GifMaker
 
 # constants for minimization drawing and configuring plotting
 POINTS_NUMBER = 1000
@@ -22,6 +23,7 @@ ANNOTATION_COLOR = "black"
 BOUNDS_LINE_STYLE = "--"
 ANNOTATION_INDENT = 3
 FONT_SIZE = "xx-small"  # boundary and central points annotation size on each iteration
+EMPTY_STR = ""
 
 IMAGES_FOLDER = "front/images_for_gif"
 RESULT_FILENAME = "minimization_image_"
@@ -227,27 +229,132 @@ class PlaneMinimizationDrawer(DrawerInterface):
     def get_fig(self):
         return self.fig
 
-    @staticmethod
-    def save_figure(folder: str = "", name: str = "") -> str:
+    def clear_figure(self):
+        self.axes.cla()
 
+    def draw_minimization(self, x_optimum: float = 0., f_x_optimum: float = 0., borders: dict = {}) -> list:
         """
-        Method for saving image for gif in some folder
 
         Parameters:
         ----------
-        folder: str
-            Name of the directory where to save the pictures and the resulting GIF
-        name: str
-            Name of the resulting file
+        x_optimum: float
+            Point at which the minimum of the function was found
+        f_x_optimum: float
+            Value of the function at the point at which the minimum of the function was found
+        borders: dict
+            Dictionary with all intervals of uncertainty in the minimization process, numbered by the iteration index
 
         Returns:
         -------
-            Absolute path of saved image in str-format
+            List of paths to images for gif creation
         """
 
-        full_path = folder + PATH_DELIMITER + RESULT_FILENAME + name + RES_POSTFIX
+        images_for_gif = []
+        init_iter = 0
+        for iter_num in borders.keys():
+            self.update_bounds(list(borders[iter_num]))
+            images_for_gif.append(self.draw_current_iteration(iter_num, borders[init_iter]))
+        images_for_gif.append(self.draw_result_image(len(borders.keys()), result_x=x_optimum, result_y=f_x_optimum))
+        return images_for_gif
+
+    def draw_current_iteration(self, iter_num: int = 0, init_interval: tuple = ()) -> str:
+
+        """
+        Method for drawing the current iteration of the minimization algorithm
+        Parameters:
+        ----------
+
+        iter_num: float
+            Number of current iteration which drawing we draw
+        l_bound: float
+            Left bound of new interval on current iteration
+        r_bound: float
+            Right bound of new interval on current iteration
+        init_interval: list
+            Initial bounds of uncertainty interval for drawing axes on graph
+        images_for_gif: list
+            List of image names from which are built minimization animation
+
+        Returns:
+        -------
+            Path to result image
+        """
+
+        self.draw_bounds(iter_num)
+        self.update_bounds([init_interval[0], init_interval[1]])
+        self.draw_colored_axes()
+        self.draw_graph_of_function()
+        image_path = PlaneMinimizationDrawer.save_iteration_img(iter_num)
+        self.clear_figure()
+        return image_path
+
+    def draw_result_image(self, iter_num: int = 1, result_x: float = 0., result_y: float = 0.) -> str:
+
+        """
+        Method for drawing minimization result on function graph to show the user
+
+        Parameters:
+        ----------
+        iter_num: int
+            Iteration number at which the minimization result was found
+        result_x: float
+            Abscissa of the minimization result point
+        result_y: float
+            Ordinate of the point-result of minimization
+        init_interval: list
+            Initial bounds of uncertainty interval for drawing axes on graph
+        images_for_gif: list
+            List of image names from which are built minimization animation
+
+        Returns:
+        -------
+            Path to result image
+        """
+
+        self.draw_graph_of_function()
+        self.draw_colored_axes()
+        self.draw_point(iter_num, "result point on iteration #{}".format(iter_num), result_x, result_y)
+        return PlaneMinimizationDrawer.save_iteration_img(iter_num)
+
+    def const_minimization(self, interval: list) -> str:
+
+        """
+        Method for solving the problem of minimization on a constant function
+
+        Parameters:
+        ----------
+        interval: list
+            List of two boundaries of the uncertainty interval
+
+        Returns:
+        -------
+            Path for gif with result minimization
+        """
+
+        iter_num = 1
+        result_x = (interval[0] + interval[1]) / 2
+        result_y = float(self.func)
+        images_for_gif = [self.draw_result_image(iter_num, result_x, result_y)]
+        return GifMaker.create_gif_result(images_for_gif, IMAGES_FOLDER)
+
+    @staticmethod
+    def save_iteration_img(iter_num: int = 0) -> str:
+
+        """
+        Method for saving the path to the image, along which it is planned to animate the minimization process,
+         and adding it to the general set of such images
+
+        Parameters:
+        ----------
+        iter_num: int
+            Number of iteration
+
+        Returns:
+        -------
+            Path to current saved image
+        """
+
+        image_name = "iter_{}".format(iter_num)
+        full_path = IMAGES_FOLDER + PATH_DELIMITER + RESULT_FILENAME + image_name + RES_POSTFIX
         plt.savefig(full_path)
         return full_path
-
-    def clear_figure(self):
-        self.axes.cla()
